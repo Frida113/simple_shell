@@ -10,6 +10,7 @@ int main(void)
 	size_t bufsize = 0;
 	ssize_t n_read = 0;
 	pid_t pid;
+	char *argv[2] = {NULL, NULL};
 
 	while (1)
 	{
@@ -27,10 +28,8 @@ int main(void)
 				perror("Error");
 			else if (pid == 0) /* child process */
 			{
-				char *argv[] = {cmd, NULL};
+				argv[0] = cmd;
 				execve(cmd, argv, environ);
-				perror("Error"); /* handle execve error */
-				exit(EXIT_FAILURE);
 			}
 			else /* parent process */
 				wait(NULL);
