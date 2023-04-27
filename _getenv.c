@@ -1,45 +1,92 @@
 #include "shell.h"
 
 /**
- * main - simple shell
- * Return: Always 0.
+ * get_environment - returns a copy of the environment variables
+ * @info: pointer to struct containing information about the shell
+ *
+ * Return: pointer to an array of strings containing the environment variables
  */
-int main(void)
+char **get_environment(info_t *info)
 {
-	char *buffer = NULL, *path = NULL, *cmd = NULL;
-	size_t bufsize = 0;
-	ssize_t n_read = 0;
-	pid_t pid;
-	char *argv[2] = {NULL, NULL};
-
-	while (1)
+	if (!info->environ || info->env_changed)
 	{
-		printf("$ "); /* display prompt */
-		n_read = getline(&buffer, &bufsize, stdin);
-		if (n_read == EOF) /* handle end of file */
-			break;
-		buffer[n_read - 1] = '\0'; /* remove newline */
-		path = _getenv("PATH");
-		cmd = path_concat(path, buffer); /* add path to command */
-		if (access(cmd, X_OK) == 0) /* check if command exists */
-		{
-			pid = fork();
-			if (pid == -1) /* handle fork error */
-				perror("Error");
-			else if (pid == 0) /* child process */
-			{
-				argv[0] = cmd;
-				execve(cmd, argv, environ);
-			}
-			else /* parent process */
-				wait(NULL);
-		}
-		else /* command not found */
-			printf("%s: command not found\n", buffer);
-		free(path);
-		free(cmd);
+		info->environ = list_to_strings(info->env);
+		info->env_changed = 0;
 	}
-	free(buffer);
-	return (0);
+
+	return (info->environ);
 }
 
+/**
+ * unset_environment - remove an environment variable
+ * @info: pointer to struct containing information about the shell
+ * @var: name of the environment variable to remove
+ *
+ * Return: 1 if the variable was removed, 0 otherwise
+ */
+int _unsetenvironment(info_t *info, char *var)
+{
+	list_t *node = info->env;
+	size_t i = 0;
+	char *p;
+
+	if (!node || !var)
+		return (0);
+
+	while (node)
+	{
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			info->env_changed = delete_node_at_index(&(info->env), i);
+			i = 0;
+			node = info->env;
+			continue;
+		}
+		node = node->next;
+		i++;
+	}
+	return (info->env_changed);
+}
+
+/**
+ * set_environment - add or modify an environment variable
+ * @info: pointer to struct containing information about the shell
+ * @var: name of the environment variable to add or modify
+ * @value: value to set the variable to
+ *
+ * Return: 0 on success, 1 on failure
+ */
+int _setenvironment(info_t *info, char *var, char *value)
+{
+	char *buf = NULL;
+	list_t *node;
+	char *p;
+
+	if (!var || !value)
+		return (0);
+
+	buf = malloc(_strlen(var) + _strlen(value) + 2);
+	if (!buf)
+		return (1);
+	_strcpy(buf, var);
+	_strcat(buf, "=");
+	_strcat(buf, value);
+	node = info->env;
+	while (node)
+	{
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			free(node->str);
+			node->str = buf;
+			info->env_changed = 1;
+			return (0);
+		}
+		node = node->next;
+	}
+	add_node_end(&(info->env), buf, 0);
+	free(buf);
+	info->env_changed = 1;
+	return (0);
+}

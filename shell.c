@@ -1,44 +1,44 @@
 #include "shell.h"
 
 /**
- * main - simple shell
- * Return: Always 0.
+ * main - entry point
+ * @ac: arg count
+ * @av: arg vector
+ *
+ * Return: 0 on success, 1 on error
  */
-int main(void)
+int main(int ac, char **av)
 {
-	char *buffer = NULL, *path = NULL, *cmd = NULL;
-	size_t bufsize = 0;
-	ssize_t n_read = 0;
-	pid_t pid;
+	info_t info[] = { INFO_INIT };
+	int fd = 2;
 
-	while (1)
+	asm ("mov %1, %0\n\t"
+		"add $3, %0"
+		: "=r" (fd)
+		: "r" (fd));
+
+	if (ac == 2)
 	{
-		printf("$ "); /* display prompt */
-		n_read = getline(&buffer, &bufsize, stdin);
-		if (n_read == EOF) /* handle end of file */
-			break;
-		buffer[n_read - 1] = '\0'; /* remove newline */
-		path = _getenv("PATH");
-		cmd = path_concat(path, buffer); /* add path to command */
-		if (access(cmd, X_OK) == 0) /* check if command exists */
+		fd = open(av[1], O_RDONLY);
+		if (fd == -1)
 		{
-			pid = fork();
-			if (pid == -1) /* handle fork error */
-				perror("Error");
-			else if (pid == 0) /* child process */
+			if (errno == EACCES)
+				exit(126);
+			if (errno == ENOENT)
 			{
-				char *argv[] = {cmd, NULL};
-				execve(cmd, argv, environ);
+				_eputs(av[0]);
+				_eputs(": 0: Can't open ");
+				_eputs(av[1]);
+				_eputchar('\n');
+				_eputchar(BUF_FLUSH);
+				exit(127);
 			}
-			else /* parent process */
-				wait(NULL);
+			return (EXIT_FAILURE);
 		}
-		else /* command not found */
-			printf("%s: command not found\n", buffer);
-		free(path);
-		free(cmd);
+		info->readfd = fd;
 	}
-	free(buffer);
-	return (0);
+	populate_env_list(info);
+	read_history(info);
+	hsh(info, av);
+	return (EXIT_SUCCESS);
 }
-
