@@ -3,9 +3,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <limits.h>
+#include <fcntl.h>
+#include <errno.h>
+
 
 int main();
+extern char **environ;
+
+char *_getenv(const char *name);
+char *path_concat(char *path, char *cmd);
 
 #endif
