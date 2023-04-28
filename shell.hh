@@ -18,7 +18,6 @@
 #define WRITE_BUF_SIZE 1024
 #define BUF_FLUSH -1
 
-int main();
 extern char **environ;
 
 typedef struct liststr

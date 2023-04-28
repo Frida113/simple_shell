@@ -1,12 +1,12 @@
 #include "shell.h"
 
 /**
- * main - Main entry
+ * _main - Main entry
  *
  * Return: 0
  */
 
-int main(void)
+int _main(void)
 {
 	char *buffer = NULL;
 	size_t bufsize = 0;

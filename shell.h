@@ -33,5 +33,7 @@ void sig_handler(int sig);
 int _strcmp(char *s1, char *s2);
 void free_grid(char **grid);
 void free_argv(char **argv);
+int main(void);
+int _main(void);
 
 #endif
