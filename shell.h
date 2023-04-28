@@ -34,7 +34,9 @@ int _strcmp(char *s1, char *s2);
 void free_grid(char **grid);
 void free_argv(char **argv);
 int main(void);
+int _main(void);
 int interpreter(void);
 int arguments(void);
+int _arguments(void);
 
 #endif
