@@ -41,5 +41,6 @@ int interpreter(void);
 int arguments(void);
 int main(void);
 int _main(void);
+int paths(void);
 
 #endif /* SHELL_H */
