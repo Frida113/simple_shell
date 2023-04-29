@@ -1,10 +1,11 @@
 #include "shell.h"
+
+#define ARGS_MAX 100
+
 /**
  * interpreter - Interpretes the command
  * Return: 0
  */
-
-#define ARGS_MAX 100
 
 int interpreter(void)
 {
