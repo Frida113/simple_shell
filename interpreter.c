@@ -1,7 +1,5 @@
 #include "shell.h"
 
-#define ARGS_MAX 100
-
 /**
  * interpreter - Interpretes the command
  * Return: 0
@@ -9,43 +7,43 @@
 
 int interpreter(void)
 {
-	char *buffer = NULL;
+	char *args[MAX_ARGS], *input;
 	size_t bufsize = 0;
-	int n, i;
+	ssize_t getline_return;
 	pid_t pid;
-	char *args[ARGS_MAX];
-	char *token;
+	int status;
 
 	while (1)
 	{
 		printf("$ ");
-		n = getline(&buffer, &bufsize, stdin);
-		if (n == -1)
-			break;
-		buffer[n - 1] = '\0';
-		i = 0;
-		token = strtok(buffer, " ");
-		while (token != NULL)
+		getline_return = getline(&input, &bufsize, stdin);
+		if (getline_return == EOF)
 		{
-			args[i++] = token;
-			token = strtok(NULL, " ");
+			printf("\n");
+			exit(EXIT_SUCCESS);
 		}
-		args[i] = NULL;
+		if (input[getline_return - 1] == '\n')
+		{
+			input[getline_return - 1] = '\0';
+		}
 		pid = fork();
 		if (pid == -1)
 		{
-			perror("fork error");
-		}
-		else if (pid == 0)
+			perror("Error");
+			exit(EXIT_FAILURE);
+		} else if (pid == 0)
 		{
-			if (execve(args[0], args, environ) == -1)
-			{
-				perror("execve error");
-				exit(EXIT_FAILURE);
-			}
+			args[0] = input;
+			args[1] = NULL;
+			execve(args[0], args, environ);
+			perror(input);
+			exit(EXIT_FAILURE);
 		} else
-			wait(NULL);
-	} free(buffer);
-	buffer = NULL;
-	return (0);
+		{
+			do {
+				waitpid(pid, &status, WUNTRACED);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+		}
+	} free(input);
+	return (EXIT_SUCCESS);
 }

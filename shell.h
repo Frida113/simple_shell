@@ -11,6 +11,10 @@
 #include <signal.h>
 #include <errno.h>
 
+#define MAX_ARGS 10
+#define BUFSIZE 1024
+#define DELIM " \t\r\n\a"
+
 /* Global variables */
 extern char **environ;
 
