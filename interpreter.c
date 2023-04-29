@@ -11,7 +11,7 @@ int interpreter(void)
 {
 	char *buffer = NULL;
 	size_t bufsize = 0;
-	int n, i = 0;
+	int n, i;
 	pid_t pid;
 	char *args[ARGS_MAX];
 	char *token;
@@ -23,6 +23,8 @@ int interpreter(void)
 		if (n == -1)
 			break;
 		buffer[n - 1] = '\0';
+		i = 0;
+		token = strtok(buffer, " ");
 		while (token != NULL)
 		{
 			args[i++] = token;
