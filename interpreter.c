@@ -10,6 +10,7 @@ int interpreter(void)
 	char *args[2], *input;
 	pid_t pid;
 	size_t size = 0;
+	int status;
 
 	while (1)
 	{
@@ -20,7 +21,8 @@ int interpreter(void)
 			exit(EXIT_SUCCESS);
 		}
 		input[strcspn(input, "\n")] = 0;
-
+		if (strcmp(input, "exit") == 0)
+			exit(EXIT_SUCCESS);
 		pid = fork();
 		if (pid == -1)
 		{
@@ -37,8 +39,11 @@ int interpreter(void)
 				printf("%s: not found\n", args[0]);
 				exit(EXIT_FAILURE);
 			}
+		} else
+		{
+			do {
+				waitpid(pid, &status, WUNTRACED);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 		}
-		wait(NULL);
-	}
-	return (0);
+	} return (0);
 }
