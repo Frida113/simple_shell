@@ -1,37 +1,48 @@
 #include "shell.h"
 /**
- * _interpreter - interpretes a unix command
+ * interpreter - Interpretes the command
  * Return: 0
  */
 
-int _interpreter(void)
+#define ARGS_MAX 100
+
+int interpreter(void)
 {
 	char *buffer = NULL;
 	size_t bufsize = 0;
-	int pid = fork();
+	int n, i = 0;
+	pid_t pid;
+	char *args[ARGS_MAX];
+	char *token;
 
 	while (1)
 	{
 		printf("$ ");
-		getline(&buffer, &bufsize, stdin);
-		if (feof(stdin))
+		n = getline(&buffer, &bufsize, stdin);
+		if (n == -1)
+			break;
+		buffer[n - 1] = '\0';
+		while (token != NULL)
 		{
-			printf("\n");
-			exit(EXIT_SUCCESS);
+			args[i++] = token;
+			token = strtok(NULL, " ");
 		}
-		if (pid < 0)
-			perror("fork() error");
+		args[i] = NULL;
+		pid = fork();
+		if (pid == -1)
+		{
+			perror("fork error");
+		}
 		else if (pid == 0)
 		{
-			buffer[strcspn(buffer, "\n")] = 0;
-			if (execlp(buffer, buffer, (char *) NULL) == -1)
+			if (execve(args[0], args, NULL) == -1)
 			{
-				printf("Command not found: %s\n", buffer);
+				perror("execve error");
 				exit(EXIT_FAILURE);
 			}
-		}
-		else
+		} else
 			wait(NULL);
-	}
-	return (EXIT_SUCCESS);
+	} free(buffer);
+	buffer = NULL;
+	return (0);
 }
