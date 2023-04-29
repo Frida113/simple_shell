@@ -7,43 +7,38 @@
 
 int interpreter(void)
 {
-	char *args[MAX_ARGS], *input;
-	size_t bufsize = 0;
-	ssize_t getline_return;
+	char *args[2], *input;
 	pid_t pid;
-	int status;
+	size_t size = 0;
 
 	while (1)
 	{
 		printf("$ ");
-		getline_return = getline(&input, &bufsize, stdin);
-		if (getline_return == EOF)
+		if (getline(&input, &size, stdin) == -1)
 		{
 			printf("\n");
 			exit(EXIT_SUCCESS);
 		}
-		if (input[getline_return - 1] == '\n')
-		{
-			input[getline_return - 1] = '\0';
-		}
+		input[strcspn(input, "\n")] = 0;
+
 		pid = fork();
 		if (pid == -1)
 		{
 			perror("Error");
 			exit(EXIT_FAILURE);
-		} else if (pid == 0)
+		}
+		if (pid == 0)
 		{
 			args[0] = input;
 			args[1] = NULL;
-			execve(args[0], args, environ);
-			perror(input);
-			exit(EXIT_FAILURE);
-		} else
-		{
-			do {
-				waitpid(pid, &status, WUNTRACED);
-			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+			if (execve(args[0], args, environ) == -1)
+			{
+				printf("%s: not found\n", args[0]);
+				exit(EXIT_FAILURE);
+			}
 		}
-	} free(input);
-	return (EXIT_SUCCESS);
+		wait(NULL);
+	}
+	return (0);
 }
